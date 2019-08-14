@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<!--
+	作者：1198437442@qq.com
+	时间：2019-08-14
+	描述：烦死人了
+-->
+<head>
+	<meta charset="UTF-8">
+	<title>People_Manger</title>
+	<link rel="stylesheet" type="text/css" href="../static/css/easyui.css">
+	<link rel="stylesheet" type="text/css" href="../static/css/icon.css">
+	<script type="text/javascript" src="../static/js/jquery.min.js"></script>
+	<script type="text/javascript" src="../static/js/jquery.easyui.min.js"></script>
+</head>
+
+<body>
+<table id="student-table" class="easyui-datagrid" title="社员管理" style="width:100%;height:100%" data-options="singleSelect:true,collapsible:true,url:'/hello/listAllStudent',method:'get',toolbar:toolbar">
+	<thead>
+	<tr>
+		<th data-options="field:'student_id'" width="20%">社员号</th>
+		<th data-options="field:'student_name'" width="20%">姓名</th>
+		<th data-options="field:'major',align:'right'" width="20%">类型</th>
+		<th data-options="field:'grade',align:'right'" width="20%">状态</th>
+		<th data-options="field:'grade',align:'right'" width="20%">时间</th>
+	</tr>
+	</thead>
+</table>
+<div id="dlg-studentAdd" class="easyui-dialog" style="width:500px;height:210px;" closed="true" buttons="#dlg-studentAdd-btn" align="center" data-options="modal:true">
+	<form id="fm-studentAdd" method="post" novalidate>
+		<table class="pattern" border="0" cellpadding="5" cellspacing="0">
+			<tr>
+				<th width="20%">社员号：</th>
+				<td width="72%">
+					<input type="text" id="stuid" name="student_id" class="easyui-textbox" style="width:100%" class="easyui-validatebox" data-options="required:true,validType:'length[4,4]'" missingMessage="学号不能为空！" invalidMessage="长度为4位！" />
+				</td>
+			</tr>
+			<tr>
+				<th>姓名：</th>
+				<td>
+					<input type="text" id="stuname" name="student_name" class="easyui-textbox" style="width:100%" data-options="required:true" missingMessage="姓名不能为空！" />
+				</td>
+			</tr>
+			<tr>
+				<th>类型：</th>
+				<td>
+					<input type="text" id="stumajor" name="major" class="easyui-textbox" style="width:100%" />
+				</td>
+			</tr>
+			<tr>
+				<th>状态：</th>
+				<td>
+					<input type="text" id="stugrade" name="grade" class="easyui-textbox" style="width:100%" />
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>
+<div id="dlg-studentAdd-btn">
+	<a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" onclick="studentAddSave()" style="width:90px">保存</a>
+	<a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg-studentAdd').dialog('close')" style="width:90px">关闭</a>
+</div>
+
+<div id="dlg-studentEdit" class="easyui-dialog" style="width:500px;height:210px;" closed="true" buttons="#dlg-studentEdit-btn" align="center" data-options="modal:true">
+	<form id="fm-studentEdit" method="post" novalidate>
+		<table class="pattern" border="0" cellpadding="5" cellspacing="0">
+			<tr>
+				<th width="18%">社员号：</th>
+				<td width="72%">
+					<input type="text" id="student_id" name="student_id" class="easyui-textbox" style="width:100%" class="easyui-validatebox" data-options="required:true,validType:'length[9,9]'" missingMessage="学号不能为空！" invalidMessage="长度为9位！" />
+				</td>
+			</tr>
+			<tr>
+				<th>姓名：</th>
+				<td>
+					<input type="text" id="student_name" name="student_name" class="easyui-textbox" style="width:100%" data-options="required:true" missingMessage="姓名不能为空！" />
+				</td>
+			</tr>
+			<tr>
+				<th>类型：</th>
+				<td>
+					<input type="text" id="major" name="major" class="easyui-textbox" style="width:100%" />
+				</td>
+			</tr>
+			<tr>
+				<th>状态：</th>
+				<td>
+					<input type="text" id="grade" name="grade" class="easyui-textbox" style="width:100%" />
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>
+<div id="dlg-studentEdit-btn">
+	<a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" onclick="studentEditSave()" style="width:90px">保存</a>
+	<a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg-studentEdit').dialog('close')" style="width:90px">关闭</a>
+</div>
+
+<script type="text/javascript">
+    var toolbar = [{
+        text: '增加',
+        iconCls: 'icon-add',
+        handler: function() {
+            $('#dlg-studentAdd').dialog('open').dialog('center').dialog('setTitle', '添加社员信息');
+            $('#fm-studentAdd').form('clear');
+        }
+    }, {
+        text: '修改',
+        iconCls: 'icon-edit',
+        handler: function() {
+            var row = $('#student-table').datagrid('getSelected');
+
+            if(row) {
+                $('#dlg-studentEdit').dialog('open').dialog('center').dialog('setTitle', '修改社员信息');
+                $('#fm-studentEdit').form('load', row);
+            } else {
+                $.messager.alert('提醒', '请选择一条要修改的记录');
+            }
+        }
+    }, {
+        text: '删除',
+        iconCls: 'icon-remove',
+        handler: function() {
+            studentDelete();
+        }
+    },{
+        text: '查询',
+        iconCls: 'icon-search',
+        handler: function(){
+            studentSearch();
+        }
+    },{
+        text:'<input type="text" id="userAccount" style="width=50px"/>'
+    }];
+
+    function studentAddSave() {
+        $('#fm-studentAdd').form('submit', {
+            url: '/student/add',
+            onSubmit: function() {
+                //进行表单验证
+                //如果返回false阻止提交
+                return $(this).form('enableValidation').form('validate');
+            },
+            success: function(data) {
+                if(data == '增加学生成功') {
+                    $('#dlg-studentAdd').dialog('close');
+                    $('#student-table').datagrid('reload');
+
+                    $.messager.show({
+                        title: '操作完成',
+                        msg: data
+                    });
+                } else {
+                    $.messager.show({
+                        title: '出错了',
+                        msg: data
+                    });
+                }
+            }
+        });
+    }
+
+    function studentEditSave() {
+        $('#fm-studentEdit').form('submit', {
+            url: '/student/edit',
+            onSubmit: function() {
+                //进行表单验证
+                //如果返回false阻止提交
+                return $(this).form('enableValidation').form('validate');
+            },
+            success: function(data) {
+                if(data == '修改学生成功') {
+                    $('#dlg-studentEdit').dialog('close');
+                    $('#student-table').datagrid('reload');
+
+                    $.messager.show({
+                        title: '操作完成',
+                        msg: data
+                    });
+                } else {
+                    $.messager.show({
+                        title: '出错了',
+                        msg: data
+                    });
+                }
+            }
+        });
+    }
+
+    function studentDelete() {
+        var row = $('#student-table').datagrid('getSelected');
+
+        if(row) {
+            $.messager.confirm('删除', '是否彻底删除该学生信息？？？', function(r) {
+                if(r) {
+                    $.post('/student/delete', {
+                        student_id: row.student_id
+                    }, function(data) {
+                        if(data == '删除学生成功') {
+                            $('#student-table').datagrid('reload');
+
+                            $.messager.show({
+                                title: '操作完成',
+                                msg: data
+                            });
+                        } else {
+                            $.messager.show({
+                                title: '出错了',
+                                msg: data
+                            });
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('提醒', '请选择一条要删除的记录');
+        }
+    }
+
+    function studentSearch() {
+        var row = $('#student-table').datagrid('getSelected');
+
+        if(row) {
+            $.messager.confirm('删除', '是否彻底删除该学生信息？？？', function(r) {
+                if(r) {
+                    $.post('/student/delete', {
+                        student_id: row.student_id
+                    }, function(data) {
+                        if(data == '删除学生成功') {
+                            $('#student-table').datagrid('reload');
+
+                            $.messager.show({
+                                title: '操作完成',
+                                msg: data
+                            });
+                        } else {
+                            $.messager.show({
+                                title: '出错了',
+                                msg: data
+                            });
+                        }
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('提醒', '请选择一条要删除的记录');
+        }
+    }
+</script>
+</body>
+
+</html>
